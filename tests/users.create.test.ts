@@ -33,7 +33,7 @@ test("Deve retornar erro se o email não for informado", async()=>{
     });
 
     assert.deepEqual(response.status, 400);
-    assert.deepEqual(response.body, "User data   incomplete") 
+    assert.deepEqual(response.body, "User data incomplete") 
 });
 
 test("Deve permitir cadastrar um usuário sem nome", async() =>{
@@ -65,12 +65,12 @@ test("Deve retornar erro se cadastrar um email duplicado", async()=>{
      "Unique constraint failed on the fields: (`email`)",);
 });
 
-test("Deve retornar erro se o email for inválido", async()=>{
+test("Deve retornar erro caso o email seja inválido", async () => {
     const response = await request(app).post("/users").send({
-   name: faker.person.firstName(),
-   email: "teste",     
+        name: faker.person.firstName(),
+        email: "teste",
     });
 
     assert.deepStrictEqual(response.status, 400);
-    assert.deepStrictEqual(response.body, "Invalid email format");
+    assert.deepStrictEqual(response.body, "Invalid email");
 });

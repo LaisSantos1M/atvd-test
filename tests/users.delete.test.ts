@@ -1,20 +1,42 @@
-import test from 'node:test';
-import assert from 'node:assert/strict';
-import request from 'supertest';
-import { faker } from '@faker-js/faker';
+import test from "node:test";
+import assert from "node:assert";
+import request from "supertest";
+import { faker } from "@faker-js/faker";
 
-import app from '../src/app';
-import { prisma } from '../config/prisma'; 
+import app from "../src/app";
+import { prisma } from "../config/prisma";
 
-
-test("Deve buscar se o usuario não existir", async () => {
-
-    const response = await request(app).put(`/users/999`).send({
-        name:faker.person.firstName(),
-        email:faker.internet.email(),
-    });
+test.beforeEach(async () => {
+  await prisma.user.deleteMany();
 });
 
-test("Deve retornar erro se tentar deletar um usuário inersistente", async() => {
-    const response = await request(app).delete(`/users/999`);   
+test.after(async () => {
+  await prisma.$disconnect();
+});
+
+test("Deve deletar um usuário", async () => {
+  const user = await prisma.user.create({
+    data: {
+      name: faker.person.firstName(),
+      email: faker.internet.email(),
+    },
+  });
+
+  const response = await request(app).delete(`/users/${user.id}`);
+
+  assert.deepStrictEqual(response.status, 200);
+
+  const deletedUser = await prisma.user.findUnique({
+    where: {
+      id: user.id,
+    },
+  });
+
+  assert.deepStrictEqual(deletedUser, null);
+});
+
+test("Deve retornar erro se tentar deletar um usuário inexistente", async () => {
+  const response = await request(app).delete("/users/999");
+
+  assert.deepStrictEqual(response.status, 404);
 });

@@ -12,8 +12,8 @@ export default {
         return response.status(400).json("User data incomplete");
       }
 
-      if(!email.match( /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+.[a-zA-Z]{2,}$/ )) {
-        return response.status(400).json("Invalid email format");
+      if(!email.match(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)) {
+        return response.status(400).json("Invalid email");
       }
 
       const user = await prisma.user.create({
@@ -37,26 +37,25 @@ export default {
     }
   },
 
-
   getById: async (request: Request, response: Response) => {
-  try {
-    const { id } = request.params;
+    try {
+      const { id } = request.params;
+      const user = await prisma.user.findUnique({
+        where: {
+          id: +id,
+        },
+      });
 
-    const user = await prisma.user.findUnique({
-      where: {
-        id: +id,
-      },
-    });
-
-    if (!user) {
-      return response.status(404).json("User not found");
+      if(!user){
+        return response.status(404).json("User not found")
+      }
+      
+      return response.status(200).json(user);
+    } catch (e) {
+      return handleErrors(e, response);
     }
- 
-    return response.status(200).json(user);
-  } catch (e) {
-    return handleErrors(e, response);
-  }
-},
+    
+  },
 
   update: async (request: Request, response: Response) => {
     try {
@@ -86,7 +85,6 @@ export default {
           id: +id,
         },
       });
-
 
       return response.status(200).json(user);
     } catch (e) {

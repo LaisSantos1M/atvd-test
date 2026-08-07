@@ -23,6 +23,9 @@ export default {
       if (!user) {
         return response.status(401).json("Invalid email or password")
       }
+      if(!bcrypt.compareSync(password, user.password)){
+        return response.status(401).json("Invalid")
+      }
     } catch (e){
       return handleErrors(e, response)
     }
@@ -34,7 +37,7 @@ export default {
     try {
       const { email, name, password } = request.body;
 
-      if (!email || password) {
+      if (!email || !password) {
         return response.status(400).json("User data incomplete");
       }
 
@@ -48,6 +51,9 @@ export default {
           email,
           password: bcrypt.hashSync(password, +process.env.BCRYPT_ROUNDS!),
         },
+        omit: {
+          password: true
+        }
       });
       return response.status(201).json(user);
     } catch (e) {
@@ -75,6 +81,9 @@ export default {
         where: {
           id: +id,
         },
+        omit: {
+          password: true
+        }
       });
 
       if (!user) {
@@ -125,6 +134,9 @@ export default {
         where: {
           id: +id,
         },
+        omit: {
+          password: true
+        }
       });
 
       return response.status(200).json(user);

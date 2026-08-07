@@ -33,7 +33,6 @@ describe("Testes da controller users create", () => {
     assert.deepStrictEqual(response.status, 201);
     assert.deepStrictEqual(response.body.name, user.name);
     assert.deepStrictEqual(response.body.email, user.email);
-    assert.deepStrictEqual(response.body.name, null);
     assert.ok(response.body.id);
     assert.deepStrictEqual(response.body.password, undefined);
   });
@@ -68,11 +67,13 @@ describe("Testes da controller users create", () => {
     await request(app).post("/users").send({
       name: faker.person.firstName(),
       email,
+      password: faker.string.alphanumeric()
     });
 
     const response = await request(app).post("/users").send({
       name: faker.person.firstName(),
       email,
+      password: faker.string.alphanumeric()
     });
 
     assert.deepStrictEqual(response.status, 409);
@@ -82,7 +83,7 @@ describe("Testes da controller users create", () => {
     );
   });
 
-  test("Deve retornar erro caso a senha não seja informado", async () => {
+  test("Deve retornar erro caso a senha não seja informada", async () => {
     const response = await request(app).post("/users").send({
       name: faker.person.firstName(),
       email: faker.internet.email(),
@@ -98,6 +99,7 @@ describe("Testes da controller users create", () => {
     const response = await request(app).post("/users").send({
       name: faker.person.firstName(),
       email: "teste",
+      password: faker.string.alphanumeric()
     });
 
     assert.deepStrictEqual(response.status, 400);

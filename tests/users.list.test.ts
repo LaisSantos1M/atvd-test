@@ -33,7 +33,10 @@ describe("Testes da controller users list:", () => {
 
     assert.deepStrictEqual(response.status, 200);
     assert.deepStrictEqual(response.body.length, 1);
-    assert.deepStrictEqual(response.body[0], user);
+    assert.deepStrictEqual(response.body[0].name, user.name);
+    assert.deepStrictEqual(response.body[0].email, user.email);
+    assert.deepStrictEqual(response.body[0].password, undefined);
+
   });
 
   test("Deve retornar uma lista vazia quando não houver usuários", async () => {
@@ -73,7 +76,7 @@ describe("Testes da controller users list:", () => {
     response.body.forEach((user: any) => {
       assert.ok(user.email);
       assert.ok(user.id);
-      assert.ok(user.password)
+      assert.deepStrictEqual(user.password, undefined)
     });
   });
 });

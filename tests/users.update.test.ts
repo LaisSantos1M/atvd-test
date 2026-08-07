@@ -50,7 +50,6 @@ describe("Testes da controller users update", () => {
     assert.deepStrictEqual(updatedUser?.name, newUser.name);
     assert.deepStrictEqual(updatedUser?.email, newUser.email);
     assert.deepStrictEqual(response.body.password, undefined);
-        assert.deepStrictEqual(updatedUser?.password, undefined);
     
 
   });
@@ -85,7 +84,6 @@ describe("Testes da controller users update", () => {
     assert.deepStrictEqual(updatedUser?.name, newUser.name);
     assert.deepStrictEqual(updatedUser?.email, user.email);
         assert.deepStrictEqual(response.body.password, undefined);
-        assert.deepStrictEqual(updatedUser?.password, undefined);
     
   });
 

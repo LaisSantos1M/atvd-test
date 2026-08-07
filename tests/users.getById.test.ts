@@ -3,7 +3,6 @@ import assert from "node:assert";
 import request from "supertest";
 import { faker } from "@faker-js/faker";
 import { describe } from "node:test";
-
 import app from "../src/app";
 import { prisma } from "../config/prisma";
 
@@ -21,38 +20,30 @@ test.after(async () => {
 
 describe("Testes do middleware validarion:", () => {
 
-  test("Deve deletar um usuário", async () => {
+  test("Deve buscar um usuário pelo id", async () => {
     const user = await prisma.user.create({
       data: {
         name: faker.person.firstName(),
         email: faker.internet.email(),
         password: faker.string.alphanumeric(),
+
       },
     });
 
-    const response = await request(app).delete(`/users/${user.id}`);
-
-    const deletedUser = await prisma.user.findUnique({
-      where: {
-        id: user.id,
-      },
-    });
+    const response = await request(app).get(`/users/${user.id}`);
 
     assert.deepStrictEqual(response.status, 200);
     assert.deepStrictEqual(response.body.id, user.id);
     assert.deepStrictEqual(response.body.name, user.name);
     assert.deepStrictEqual(response.body.email, user.email);
     assert.deepStrictEqual(response.body.password, undefined);
-    assert.deepStrictEqual(deletedUser, null);
   });
 
-  test("Deve retornar erro ao deletar um usuário inexistente", async () => {
-    const response = await request(app).delete("/users/999");
+  test("Deve retornar erro se tentar buscar um usuário que não existe", async () => {
+    const response = await request(app).get("/users/999999");
 
     assert.deepStrictEqual(response.status, 404);
-    assert.deepStrictEqual(
-      response.body,
-      "An operation failed because it depends on one or more records that were required but not found. No record was found for a delete.",
-    );
+    assert.deepStrictEqual(response.body, "User not found");
+
   });
 });

@@ -1,20 +1,19 @@
 import { Request, Response } from "express";
 
-import { prisma } from "../../config/prisma";
-import { handleErrors } from "../helpers/handleErrors";
-import { validateEmail } from "../helpers/validateData";
 import bcrypt from "bcrypt";
-import { generateToken } from "../helpers/jwt";
+import { prisma } from "../config/prisma";
+import { handleErrors } from "../src/helpers/handleErrors";
+import { validateEmail } from "../src/helpers/validateData";
 
 export default {
+
   login: async (request: Request, response: Response) => {
     try {
-      const { email, password } = request.body;
+      const { email, password } = request.body
 
       if (!email || !password) {
-        return response.status(400).json("Email and password are required");
+        return response.status(400).json("Email and password are required")
       }
-
       const user = await prisma.user.findUnique({
         where: {
           email,
@@ -22,17 +21,17 @@ export default {
       });
 
       if (!user) {
-        return response.status(401).json("Invalid email or password");
+        return response.status(401).json("Invalid email or password")
       }
-
-      if (!bcrypt.compareSync(password, user.password)) {
-        return response.status(401).json("Invalid email or password");
+      if(!bcrypt.compareSync(password, user.password)){
+        return response.status(401).json("Invalid")
       }
-      return response.status(200).json(generateToken({id:user.id}));
-    } catch (e) {
-      return handleErrors(e, response);
+    } catch (e){
+      return handleErrors(e, response)
     }
   },
+
+
 
   create: async (request: Request, response: Response) => {
     try {
@@ -53,8 +52,8 @@ export default {
           password: bcrypt.hashSync(password, +process.env.BCRYPT_ROUNDS!),
         },
         omit: {
-          password: true,
-        },
+          password: true
+        }
       });
       return response.status(201).json(user);
     } catch (e) {
@@ -67,7 +66,7 @@ export default {
       const users = await prisma.user.findMany({
         omit: {
           password: true,
-        },
+        }
       });
       return response.status(200).json(users);
     } catch (e) {
@@ -83,8 +82,8 @@ export default {
           id: +id,
         },
         omit: {
-          password: true,
-        },
+          password: true
+        }
       });
 
       if (!user) {
@@ -102,7 +101,10 @@ export default {
       const { id } = request.params;
       const { name, email, password } = request.body;
 
-      if (email && !validateEmail(email)) {
+      if (
+        email &&
+        !validateEmail(email)
+      ) {
         return response.status(400).json("Invalid email");
       }
 
@@ -110,16 +112,13 @@ export default {
         data: {
           name,
           email,
-          password: password
-            ? bcrypt.hashSync(password, +process.env.BCRYPT_ROUNDS!)
-            : undefined,
+          password: password ? bcrypt.hashSync(password, +process.env.BCRYPT_ROUNDS!) : undefined
         },
         where: { id: +id },
         omit: {
           password: true,
         },
       });
-
 
       return response.status(200).json(user);
     } catch (e) {
@@ -136,8 +135,8 @@ export default {
           id: +id,
         },
         omit: {
-          password: true,
-        },
+          password: true
+        }
       });
 
       return response.status(200).json(user);

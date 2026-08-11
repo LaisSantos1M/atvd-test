@@ -5,6 +5,7 @@ import { faker } from "@faker-js/faker";
 import { describe } from "node:test";
 import app from "../src/app";
 import { prisma } from "../config/prisma";
+import { generateToken } from "../src/helpers/jwt";
 
 test.before(() => {
   console.error = () => { };
@@ -12,6 +13,7 @@ test.before(() => {
 
 test.beforeEach(async () => {
   await prisma.user.deleteMany();
+
 });
 
 test.after(async () => {
@@ -26,8 +28,11 @@ describe("Testes da controller users create", () => {
       email: faker.internet.email(),
       password: faker.string.alphanumeric(),
     };
-
-    const response = await request(app).post("/users").send(user);
+    const token = generateToken({ id: 1 }, "10m");
+    const response = await await request(app)
+      .post("/users")
+      .set("Authorization", `Bearer ${token}`)
+      .send(user);
 
     assert.deepStrictEqual(response.status, 201);
     assert.deepStrictEqual(response.body.name, user.name);
@@ -37,9 +42,12 @@ describe("Testes da controller users create", () => {
   });
 
   test("Deve retornar erro se o email não for informado", async () => {
-    const response = await request(app).post("/users").send({
+    const token = generateToken({ id: 1 }, "10m");
+    const response = await request(app).set("Authorization", `Bearer ${token}`).post("/users").send({
       name: faker.person.firstName(),
     });
+
+
 
     assert.deepStrictEqual(response.status, 400);
     assert.deepStrictEqual(response.body, "User data incomplete");
@@ -52,7 +60,8 @@ describe("Testes da controller users create", () => {
 
     };
 
-    const response = await request(app).post("/users").send(user);
+    const token = generateToken({ id: 1 }, "10m");
+    const response = await request(app).post("/users").set("Authorization", `Bearer ${token}`).send(user);
 
     assert.deepStrictEqual(response.status, 201);
     assert.deepStrictEqual(response.body.email, user.email);
@@ -68,8 +77,9 @@ describe("Testes da controller users create", () => {
       email,
       password: faker.string.alphanumeric()
     });
+    const token = generateToken({ id: 1 }, "10m");
 
-    const response = await request(app).post("/users").send({
+    const response = await request(app).post("/users").set("Authorization", `Bearer ${token}`).send({
       name: faker.person.firstName(),
       email,
       password: faker.string.alphanumeric()
@@ -83,7 +93,8 @@ describe("Testes da controller users create", () => {
   });
 
   test("Deve retornar erro caso a senha não seja informada", async () => {
-    const response = await request(app).post("/users").send({
+    const token = generateToken({ id: 1 }, "10m");
+    const response = await request(app).post("/users").set("Authorization", `Bearer ${token}`).send({
       name: faker.person.firstName(),
       email: faker.internet.email(),
     });
@@ -95,7 +106,8 @@ describe("Testes da controller users create", () => {
 
 
   test("Deve retornar erro caso o email seja inválido", async () => {
-    const response = await request(app).post("/users").send({
+    const token = generateToken({ id: 1 }, "10m");
+    const response = await request(app).post("/users").set("Authorization", `Bearer ${token}`).send({
       name: faker.person.firstName(),
       email: "teste",
       password: faker.string.alphanumeric()

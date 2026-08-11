@@ -1,147 +1,60 @@
-import { Request, Response } from "express";
+import test, { describe } from "node:test";
+import assert from "node:assert";
+import request from "supertest";
+import { faker } from "@faker-js/faker";
 
-import bcrypt from "bcrypt";
+import app from "../src/app";
 import { prisma } from "../config/prisma";
-import { handleErrors } from "../src/helpers/handleErrors";
-import { validateEmail } from "../src/helpers/validateData";
 
-export default {
+test.before(() => {
+  console.error = () => { };
+});
 
-  login: async (request: Request, response: Response) => {
-    try {
-      const { email, password } = request.body
+test.beforeEach(async () => {
+  await prisma.user.deleteMany();
+});
 
-      if (!email || !password) {
-        return response.status(400).json("Email and password are required")
-      }
-      const user = await prisma.user.findUnique({
-        where: {
-          email,
-        },
-      });
+test.after(async () => {
+  await prisma.$disconnect();
+});
 
-      if (!user) {
-        return response.status(401).json("Invalid email or password")
-      }
-      if(!bcrypt.compareSync(password, user.password)){
-        return response.status(401).json("Invalid")
-      }
-    } catch (e){
-      return handleErrors(e, response)
-    }
-  },
+describe("Testes da controller users delete", () => {
+  test("Deve deletar um usuário", async () => {
+    const user = await prisma.user.create({
+      data: {
+        name: faker.person.firstName(),
+        email: faker.internet.email(),
+        password: faker.string.alphanumeric(),
+      },
+    });
+    const token = generateToken({ id: 1 }, "10m");
 
+    const response = await request(app)
+      .set("Authorization", `Bearer ${token}`)
+      .delete(`/users/${user.id}`);
 
+    const deletedUser = await prisma.user.findUnique({
+      where: {
+        id: user.id,
+      },
+    });
 
-  create: async (request: Request, response: Response) => {
-    try {
-      const { email, name, password } = request.body;
+    assert.deepStrictEqual(response.status, 200);
+    assert.deepStrictEqual(response.body.id, user.id);
+    assert.deepStrictEqual(response.body.name, user.name);
+    assert.deepStrictEqual(response.body.email, user.email);
+    assert.deepStrictEqual(response.body.password, undefined);
+    assert.deepStrictEqual(deletedUser, null);
+  });
 
-      if (!email || !password) {
-        return response.status(400).json("User data incomplete");
-      }
+  test("Deve retornar erro ao deletar um usuário inexistente", async () => {
+    const token = generateToken({ id: 1 }, "10m");
+    const response = await request(app).set("Authorization", `Bearer ${token}`).delete("/users/999");
 
-      if (!validateEmail(email)) {
-        return response.status(400).json("Invalid email");
-      }
-
-      const user = await prisma.user.create({
-        data: {
-          name,
-          email,
-          password: bcrypt.hashSync(password, +process.env.BCRYPT_ROUNDS!),
-        },
-        omit: {
-          password: true
-        }
-      });
-      return response.status(201).json(user);
-    } catch (e) {
-      return handleErrors(e, response);
-    }
-  },
-
-  list: async (request: Request, response: Response) => {
-    try {
-      const users = await prisma.user.findMany({
-        omit: {
-          password: true,
-        }
-      });
-      return response.status(200).json(users);
-    } catch (e) {
-      return handleErrors(e, response);
-    }
-  },
-
-  getById: async (request: Request, response: Response) => {
-    try {
-      const { id } = request.params;
-      const user = await prisma.user.findUnique({
-        where: {
-          id: +id,
-        },
-        omit: {
-          password: true
-        }
-      });
-
-      if (!user) {
-        return response.status(404).json("User not found");
-      }
-
-      return response.status(200).json(user);
-    } catch (e) {
-      return handleErrors(e, response);
-    }
-  },
-
-  update: async (request: Request, response: Response) => {
-    try {
-      const { id } = request.params;
-      const { name, email, password } = request.body;
-
-      if (
-        email &&
-        !validateEmail(email)
-      ) {
-        return response.status(400).json("Invalid email");
-      }
-
-      const user = await prisma.user.update({
-        data: {
-          name,
-          email,
-          password: password ? bcrypt.hashSync(password, +process.env.BCRYPT_ROUNDS!) : undefined
-        },
-        where: { id: +id },
-        omit: {
-          password: true,
-        },
-      });
-
-      return response.status(200).json(user);
-    } catch (e) {
-      return handleErrors(e, response);
-    }
-  },
-
-  delete: async (request: Request, response: Response) => {
-    try {
-      const { id } = request.params;
-
-      const user = await prisma.user.delete({
-        where: {
-          id: +id,
-        },
-        omit: {
-          password: true
-        }
-      });
-
-      return response.status(200).json(user);
-    } catch (e) {
-      return handleErrors(e, response);
-    }
-  },
-};
+    assert.deepStrictEqual(response.status, 404);
+    assert.deepStrictEqual(
+      response.body,
+      "An operation failed because it depends on one or more records that were required but not found. No record was found for a delete.",
+    );
+  });
+});

@@ -6,7 +6,7 @@ import { describe } from "node:test";
 import app from "../src/app";
 import { prisma } from "../config/prisma";
 import bcrypt from "bcrypt";
-import { response } from "express";
+import { validateToken } from "../src/helpers/jwt";
 
 
 test.before(() => {
@@ -35,10 +35,56 @@ describe("Teste da controller do login:", () => {
         },
     });
 
-    const reponse = await request(app).post("users/login").send({
+    const response = await request(app).post("users/login").send({
         email,
         password
     });
     assert.deepStrictEqual(response.status, 200);
+    assert.ok(response.body);
+
+    const payload = validateToken(response.body);
+
+    assert.deepStrictEqual(payload.id, user.id);
+    assert.deepStrictEqual(payload.password, undefined);
+    
+    });
+
+    test("Deve retornar erro se o email não for informado", async () => {
+        const response = await request(app).post("/users/login").send({
+            password: faker.string.alphanumeric(5),
+        });
+        assert.deepStrictEqual(response.status, 400);
+        assert.deepStrictEqual(response.body, "Email and password are required")
+    });
+
+    test("Deve retornar erro para usuario inexistente", async () =>{
+        const response = await request(app).post("/users/login").send({
+            email: faker.internet.email(),
+            password: faker.string.alphanumeric(5),
+        });
+
+        assert.deepStrictEqual(response.status, 401);
+        assert.deepStrictEqual(response.body, "Invalid email or password");
+    });
+
+
+    test("Deve retornar erro para senha incorreta ", async ()=>{
+        const user = await prisma.user.create({
+            data:{
+                name: faker.person.firstName(),
+                email: faker.internet.email(),
+                password: bcrypt.hashSync(
+                    faker.string.alphanumeric(5),
+                    +process.env.BCRYPT_ROUNDS!,
+                ),
+            },
+        });
+        const response = await request(app).post("/users/login").send({
+            email: user.email,
+            password: faker.string.alphanumeric(5),
+        });
+
+        assert.deepStrictEqual(response.status, 401);
+        assert.deepStrictEqual(response.body, "Invalid email or password")
     });
 });

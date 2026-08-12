@@ -2,7 +2,7 @@ import test, { describe } from "node:test";
 import assert from "node:assert";
 import request from "supertest";
 import { faker } from "@faker-js/faker";
-
+import { generateToken } from "../src/helpers/jwt";
 import app from "../src/app";
 import { prisma } from "../config/prisma";
 
@@ -30,8 +30,8 @@ describe("Testes da controller users delete", () => {
     const token = generateToken({ id: 1 }, "10m");
 
     const response = await request(app)
-      .set("Authorization", `Bearer ${token}`)
-      .delete(`/users/${user.id}`);
+      .delete(`/users/${user.id}`)
+      .set("Authorization", `Bearer ${token}`);
 
     const deletedUser = await prisma.user.findUnique({
       where: {
@@ -49,7 +49,10 @@ describe("Testes da controller users delete", () => {
 
   test("Deve retornar erro ao deletar um usuário inexistente", async () => {
     const token = generateToken({ id: 1 }, "10m");
-    const response = await request(app).set("Authorization", `Bearer ${token}`).delete("/users/999");
+    const response = await request(app)
+    .delete("/users/999")
+    .set("Authorization", `Bearer ${token}`);
+
 
     assert.deepStrictEqual(response.status, 404);
     assert.deepStrictEqual(

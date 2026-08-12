@@ -1,13 +1,13 @@
-import test from "node:test";
+import test, { describe } from "node:test";
 import assert from "node:assert";
 import request from "supertest";
 import { faker } from "@faker-js/faker";
-import { describe } from "node:test";
+
 import app from "../src/app";
 import { prisma } from "../config/prisma";
 
 test.before(() => {
-  console.error = () => { };
+  console.error = () => {};
 });
 
 test.beforeEach(async () => {
@@ -18,15 +18,13 @@ test.after(async () => {
   await prisma.$disconnect();
 });
 
-describe("Testes do middleware validarion:", () => {
-
+describe("Testes da controller users getById", () => {
   test("Deve buscar um usuário pelo id", async () => {
     const user = await prisma.user.create({
       data: {
         name: faker.person.firstName(),
         email: faker.internet.email(),
         password: faker.string.alphanumeric(),
-
       },
     });
 
@@ -44,6 +42,5 @@ describe("Testes do middleware validarion:", () => {
 
     assert.deepStrictEqual(response.status, 404);
     assert.deepStrictEqual(response.body, "User not found");
-
   });
 });

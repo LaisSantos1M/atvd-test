@@ -1,13 +1,13 @@
-import test from "node:test";
+import test, { describe } from "node:test";
 import assert from "node:assert";
 import request from "supertest";
 import { faker } from "@faker-js/faker";
-import { describe } from "node:test";
+
 import app from "../src/app";
 import { prisma } from "../config/prisma";
 
 test.before(() => {
-  console.error = () => { };
+  console.error = () => {};
 });
 
 test.beforeEach(async () => {
@@ -25,15 +25,12 @@ describe("Testes da controller users update", () => {
         name: faker.person.firstName(),
         email: faker.internet.email(),
         password: faker.string.alphanumeric(),
-
       },
     });
 
     const newUser = {
       name: faker.person.firstName(),
       email: faker.internet.email(),
-      password: faker.string.alphanumeric(),
-
     };
 
     const response = await request(app).put(`/users/${user.id}`).send(newUser);
@@ -47,11 +44,9 @@ describe("Testes da controller users update", () => {
     assert.deepStrictEqual(response.status, 200);
     assert.deepStrictEqual(response.body.name, newUser.name);
     assert.deepStrictEqual(response.body.email, newUser.email);
+    assert.deepStrictEqual(response.body.password, undefined);
     assert.deepStrictEqual(updatedUser?.name, newUser.name);
     assert.deepStrictEqual(updatedUser?.email, newUser.email);
-    assert.deepStrictEqual(response.body.password, undefined);
-    
-
   });
 
   test("Deve atualizar apenas o nome de um usuário", async () => {
@@ -60,14 +55,11 @@ describe("Testes da controller users update", () => {
         name: faker.person.firstName(),
         email: faker.internet.email(),
         password: faker.string.alphanumeric(),
-
       },
     });
 
     const newUser = {
       name: faker.person.firstName(),
-      password: faker.string.alphanumeric(),
-
     };
 
     const response = await request(app).put(`/users/${user.id}`).send(newUser);
@@ -81,10 +73,9 @@ describe("Testes da controller users update", () => {
     assert.deepStrictEqual(response.status, 200);
     assert.deepStrictEqual(response.body.name, newUser.name);
     assert.deepStrictEqual(response.body.email, user.email);
+    assert.deepStrictEqual(response.body.password, undefined);
     assert.deepStrictEqual(updatedUser?.name, newUser.name);
     assert.deepStrictEqual(updatedUser?.email, user.email);
-        assert.deepStrictEqual(response.body.password, undefined);
-    
   });
 
   test("Deve retornar erro ao tentar atualizar um usuário inexistente", async () => {
@@ -108,7 +99,6 @@ describe("Testes da controller users update", () => {
         name: faker.person.firstName(),
         email,
         password: faker.string.alphanumeric(),
-
       },
     });
 
@@ -117,11 +107,12 @@ describe("Testes da controller users update", () => {
         name: faker.person.firstName(),
         email: faker.internet.email(),
         password: faker.string.alphanumeric(),
-
       },
     });
 
-    const response = await request(app).put(`/users/${user.id}`).send({ email });
+    const response = await request(app)
+      .put(`/users/${user.id}`)
+      .send({ email });
 
     assert.deepStrictEqual(response.status, 409);
     assert.deepStrictEqual(
@@ -136,7 +127,6 @@ describe("Testes da controller users update", () => {
         name: faker.person.firstName(),
         email: faker.internet.email(),
         password: faker.string.alphanumeric(),
-
       },
     });
 

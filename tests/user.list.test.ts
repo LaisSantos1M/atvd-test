@@ -1,13 +1,13 @@
-import test from "node:test";
+import test, { describe } from "node:test";
 import assert from "node:assert";
 import request from "supertest";
 import { faker } from "@faker-js/faker";
-import { describe } from "node:test";
+
 import app from "../src/app";
 import { prisma } from "../config/prisma";
 
 test.before(() => {
-  console.error = () => { };
+  console.error = () => {};
 });
 
 test.beforeEach(async () => {
@@ -17,15 +17,14 @@ test.beforeEach(async () => {
 test.after(async () => {
   await prisma.$disconnect();
 });
-describe("Testes da controller users list:", () => {
 
+describe("Testes da controller users list", () => {
   test("Deve listar os usuários", async () => {
     const user = await prisma.user.create({
       data: {
         name: faker.person.firstName(),
         email: faker.internet.email(),
         password: faker.string.alphanumeric(),
-
       },
     });
 
@@ -36,7 +35,6 @@ describe("Testes da controller users list:", () => {
     assert.deepStrictEqual(response.body[0].name, user.name);
     assert.deepStrictEqual(response.body[0].email, user.email);
     assert.deepStrictEqual(response.body[0].password, undefined);
-
   });
 
   test("Deve retornar uma lista vazia quando não houver usuários", async () => {
@@ -53,18 +51,15 @@ describe("Testes da controller users list:", () => {
           name: faker.person.firstName(),
           email: faker.internet.email(),
           password: faker.string.alphanumeric(),
-
         },
         {
           email: faker.internet.email(),
           password: faker.string.alphanumeric(),
-
         },
         {
           name: faker.person.firstName(),
           email: faker.internet.email(),
           password: faker.string.alphanumeric(),
-
         },
       ],
     });
@@ -76,7 +71,7 @@ describe("Testes da controller users list:", () => {
     response.body.forEach((user: any) => {
       assert.ok(user.email);
       assert.ok(user.id);
-      assert.deepStrictEqual(user.password, undefined)
+      assert.deepStrictEqual(user.password, undefined);
     });
   });
 });

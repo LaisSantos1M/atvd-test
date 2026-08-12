@@ -35,7 +35,7 @@ describe("Teste da controller do login:", () => {
         },
     });
 
-    const response = await request(app).post("users/login").send({
+    const response = await request(app).post("/users/login").send({
         email,
         password
     });
@@ -56,6 +56,15 @@ describe("Teste da controller do login:", () => {
         assert.deepStrictEqual(response.status, 400);
         assert.deepStrictEqual(response.body, "Email and password are required")
     });
+
+      test("Deve retornar erro se a senha não for informada", async () => {
+    const response = await request(app).post("/users/login").send({
+      email: faker.internet.email(),
+    });
+
+    assert.deepStrictEqual(response.status, 400);
+    assert.deepStrictEqual(response.body, "Email and password are required");
+  });
 
     test("Deve retornar erro para usuario inexistente", async () =>{
         const response = await request(app).post("/users/login").send({

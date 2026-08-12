@@ -4,31 +4,35 @@ import app from "../src/app";
 import  assert  from "node:assert";
 import {faker} from "@faker-js/faker"
 
+test.before(() => {
+    console.error = () => {}
+})
+
 describe("Testes do middleware authentication:", ()=>{
     test("Deve retornar erro quando o token não for informado", async () => {
-        const response = await request(app).delete("/users/0")
+        const response = await request(app).delete("/users/1")
 
         assert.deepStrictEqual(response.status, 401);
         assert.deepStrictEqual(response.body, "Token not provided");
     });
 
     test("Deve retornar erro quando o formato do token for invalido", async()=>{
-        const response = await request(app).delete("/users/0").set("Authorization", faker.string.alphanumeric(5))
+        const response = await request(app).delete("/users/1").set("Authorization", faker.string.alphanumeric(5))
 
         assert.deepStrictEqual(response.status, 401);
         assert.deepStrictEqual(response.body, "Invalid token format")
     });
 
     test("Deve retornar erro quando o formato é valido mas o token esta vazio", async ()=>{
-        const response = await request(app).delete("/users/0").set("Authorization", "Bear");
+        const response = await request(app).delete("/users/1").set("Authorization", "Bearer ");
 
         assert.deepStrictEqual(response.status, 401);
         assert.deepStrictEqual(response.body, "Invalid token format");
     });
     test("Deve retornar erro quando o token for invalido", async()=>{
-           const response = await request(app).delete("/users/0").set("Authorization", `Bear ${faker.string.alphanumeric(30)}`);
+           const response = await request(app).delete("/users/1").set("Authorization", `Bearer ${faker.string.alphanumeric(30)}`);
 
         assert.deepStrictEqual(response.status, 401);
-        assert.deepStrictEqual(response.body, "Invalid token");
+        assert.deepStrictEqual(response.body, "Invalid Token");
     });
 });

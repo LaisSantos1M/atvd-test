@@ -18,11 +18,12 @@ export function authentication(request: Request, response: Response, next: NextF
         const decoded = validateToken(token);
 
         if(!request.body){
-            request.body.token = decoded;
+            request.body = {};
         }
+        request.body.token = decoded;
+        return next();
     }catch(error){
         console.error(error);
         return response.status(401).json("Invalid Token");
-
     }
 }

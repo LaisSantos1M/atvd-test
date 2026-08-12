@@ -21,7 +21,6 @@ test.after(async () => {
 });
 
 describe("Testes da controller users create", () => {
-
   test("Deve cadastrar um usuário", async () => {
     const user = {
       name: faker.person.firstName(),
@@ -29,7 +28,7 @@ describe("Testes da controller users create", () => {
       password: faker.string.alphanumeric(),
     };
     const token = generateToken({ id: 1 }, "10m");
-    const response = await await request(app)
+    const response = await request(app)
       .post("/users")
       .set("Authorization", `Bearer ${token}`)
       .send(user);
@@ -43,11 +42,24 @@ describe("Testes da controller users create", () => {
 
   test("Deve retornar erro se o email não for informado", async () => {
     const token = generateToken({ id: 1 }, "10m");
-    const response = await request(app).set("Authorization", `Bearer ${token}`).post("/users").send({
+    const response = await request(app).post("/users").set("Authorization", `Bearer ${token}`).send({
       name: faker.person.firstName(),
+      password: faker.string.alphanumeric()
     });
 
+    test("Deve retornar erro se a senha não for informada", async () => {
+      const token = generateToken({ id: 1 }, "10m");
+      const response = await request(app)
+        .post("/users")
+        .set("Authorization", `Bearer ${token}`)
+        .send({
+          name: faker.person.firstName(),
+          email: faker.internet.email(),
+        });
 
+      assert.deepStrictEqual(response.status, 400);
+      assert.deepStrictEqual(response.body, "User data incomplete");
+    });
 
     assert.deepStrictEqual(response.status, 400);
     assert.deepStrictEqual(response.body, "User data incomplete");
@@ -72,12 +84,13 @@ describe("Testes da controller users create", () => {
 
   test("Deve retornar erro ao cadastrar um email duplicado", async () => {
     const email = faker.internet.email();
-    await request(app).post("/users").send({
+    const token = generateToken({ id: 1 }, "10m");
+
+    await request(app).post("/users").set("Authorization", `Bearer ${token}`).send({
       name: faker.person.firstName(),
       email,
       password: faker.string.alphanumeric()
     });
-    const token = generateToken({ id: 1 }, "10m");
 
     const response = await request(app).post("/users").set("Authorization", `Bearer ${token}`).send({
       name: faker.person.firstName(),
@@ -91,18 +104,6 @@ describe("Testes da controller users create", () => {
       "Unique constraint failed on the fields: (`email`)",
     );
   });
-
-  test("Deve retornar erro caso a senha não seja informada", async () => {
-    const token = generateToken({ id: 1 }, "10m");
-    const response = await request(app).post("/users").set("Authorization", `Bearer ${token}`).send({
-      name: faker.person.firstName(),
-      email: faker.internet.email(),
-    });
-
-    assert.deepStrictEqual(response.status, 400);
-    assert.deepStrictEqual(response.body, "User data incomplete");
-  });
-
 
 
   test("Deve retornar erro caso o email seja inválido", async () => {
